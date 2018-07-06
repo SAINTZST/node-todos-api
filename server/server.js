@@ -1,53 +1,27 @@
-var mongoose = require('mongoose')
+var express = require('express')
+var bodyParse = require('body-parser')
 
-mongoose.Promise = global.Promise
-mongoose.connect('mongodb://localhost:27017/TodoApp')
+var { mongoose } = require('./db/mongoose')
+var { Todo } = require('./models/todo')
+var { User } = require('./models/user')
 
-const Todo = mongoose.model('Todo', {
-    text: {
-        type: String,
-        required: true,
-        minLength: 1,
-        trim: true
-    },
-    completed: {
-        type: Boolean,
-        default: false
-    },
-    completedAt: {
-        type: Number,
-        default: null
-    }
+var app = express()
+
+app.use(bodyParse.json())
+
+app.post('/todos', (req, res) => {
+    var todo = new Todo({
+        text: req.body.text
+    })
+
+    todo.save().then((doc) => {
+        console.log(doc)
+        res.send(doc)
+    }, (err) => {
+        res.status(400).send(err)
+    })
 })
 
-// var myTodo = new Todo({
-//     text: 'Eat lunch',
-//     completed: false,
-//     completedAt: + new Date()
-// })
-
-// myTodo.save().then((res) => {
-//     console.log(res)
-// }, (err) => {
-//     console.log(err)
-// })
-
-const User = mongoose.model('User', {
-    email: {
-        required: true,
-        trim: true,
-        type: String,
-        minLength: 1
-    }
+app.listen(3000, () => {
+    console.log('Server started on port 3000')
 })
-
-var user = new User({
-    email:'    napatchanan@neversitup.com'
-})
-
-user.save().then((doc) => {
-    console.log(doc)
-}, (err) => {
-    console.log(err)
-})
-
