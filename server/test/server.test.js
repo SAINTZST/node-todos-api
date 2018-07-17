@@ -10,7 +10,9 @@ const todos = [{
     text: 'First test todo'
 }, {
     _id: new ObjectID(),
-    text: 'Second test todo'
+    text: 'Second test todo',
+    completed: true,
+    completedAt: 123456789
 }]
 
 beforeEach((done) => {
@@ -120,7 +122,7 @@ describe('DELETE /todos/:id', () => {
                     return done(err)
                 }
                 Todo.findById(hexId).then((todo) => {
-                    expect(todo).toBe(null)
+                    expect(todo).toBeNull()
                     done()
                 }).catch((err) => {
                     done(err)
@@ -140,6 +142,47 @@ describe('DELETE /todos/:id', () => {
         request(app)
             .delete('/todos/123')
             .expect(404)
+            .end(done)
+    })
+})
+
+describe('PATCH /todos/:id', () => {
+    it('Should update the todo', (done) => {
+        var id = todos[0]._id.toHexString()
+        var text = 'This should be a new text'
+        var completedAt = new Date().getTime()
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({
+                text,
+                completed: true,
+                completedAt
+            })
+            .expect(200)
+            .expect((res) => {
+                var todo = res.body.todo
+                expect(todo.text).toBe(text)
+                expect(todo.completed).toBe(true)
+            })
+            .end(done)
+    })
+
+    it('Should clear completedAt when todo is not completed', (done) => {
+        var id = todos[1]._id.toHexString()
+        var text = 'This should be a new text'
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({
+                text,
+                completed: false
+            })
+            .expect(200)
+            .expect((res) => {
+                var todo = res.body.todo
+                expect(todo.text).toBe(text)
+                expect(todo.completed).toBe(false)
+                expect(todo.completedAt).toBeNull()
+            })
             .end(done)
     })
 })
