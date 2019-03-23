@@ -3,16 +3,40 @@ require('./config/config')
 const _ = require('lodash')
 const express = require('express')
 const bodyParse = require('body-parser')
-const { ObjectID } = require('mongodb')
+const {
+    ObjectID
+} = require('mongodb')
 
-const { mongoose } = require('./db/mongoose')
-const { Todo } = require('./models/todo')
-const { User } = require('./models/user')
+const {
+    mongoose
+} = require('./db/mongoose')
+const {
+    Todo
+} = require('./models/todo')
+const {
+    User
+} = require('./models/user')
 
 var app = express()
 const port = process.env.PORT || 3000
 
-app.use(bodyParse.json())
+// app.use(bodyParse.json())
+
+app.use(function (req, res, next) {
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*')
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', '*')
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,token,authorization')
+
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+
+    // Pass to next layer of middleware
+    next()
+})
 
 app.post('/todos', (req, res) => {
     var todo = new Todo({
@@ -77,7 +101,9 @@ app.delete('/todos/:id', (req, res) => {
                 message: 'Todo not found'
             })
         }
-        res.send({ todo })
+        res.send({
+            todo
+        })
     }).catch((e) => {
         res.status(400).send({
             message: e
@@ -85,7 +111,7 @@ app.delete('/todos/:id', (req, res) => {
     })
 })
 
-app.patch('/todos/:id', (req, res) => {
+app.put('/todos/:id', (req, res) => {
     var id = req.params.id
     var body = _.pick(req.body, ['text', 'completed'])
 
@@ -102,13 +128,19 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null
     }
 
-    Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+    Todo.findByIdAndUpdate(id, {
+        $set: body
+    }, {
+        new: true
+    }).then((todo) => {
         if (!todo) {
             return res.status(404).send({
                 message: 'Todo not found'
             })
         }
-        res.send({ todo })
+        res.send({
+            todo
+        })
     }).catch((err) => {
         res.status(400).send()
     })
